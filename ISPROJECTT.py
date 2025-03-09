@@ -184,9 +184,140 @@ elif selected_tab == 'Demo Machine learning':
         else:
             st.error("Loan Denied")
 
-elif selected_tab == 'Demo Neural network':
+
+import tensorflow as tf
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+from keras.optimizers import SGD
+from PIL import Image
+import numpy as np
+import streamlit as st
+import matplotlib.pyplot as plt  # สำหรับการแสดงกราฟ
+
+# โหลดโมเดลและข้อมูลจาก session
+def load_model_and_data():
+    if 'model' not in st.session_state:
+        # โหลดชุดข้อมูล MNIST สำหรับการฝึกโมเดล Neural Network
+        (x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+        # ทำ Normalization
+        x_train, x_test = x_train / 255.0, x_test / 255.0
+
+        # แปลงข้อมูลเป็น (28, 28, 1) สำหรับ Conv2D
+        x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
+        x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
+
+        # One-hot encode labels
+        y_train = to_categorical(y_train, 10)
+        y_test = to_categorical(y_test, 10)
+
+        # สร้างโมเดล
+        model = Sequential([
+            Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
+            MaxPooling2D(2, 2),
+            Conv2D(64, (3, 3), activation='relu'),
+            MaxPooling2D(2, 2),
+            Flatten(),
+            Dense(128, activation='relu'),
+            Dense(10, activation='softmax')
+        ])
+
+        # ตั้งค่า optimizer และ compile โมเดล
+        model.compile(optimizer=SGD(learning_rate=0.01, momentum=0.9), 
+                      loss='categorical_crossentropy', 
+                      metrics=['accuracy'])
+
+        # ฝึกโมเดล และบันทึกข้อมูล history
+        history = model.fit(x_train, y_train, epochs=2)
+
+        # ทดสอบโมเดล
+        test_loss, test_acc = model.evaluate(x_test, y_test)
+        print(f"Test accuracy: {test_acc}")
+
+        # เก็บโมเดลใน session
+        st.session_state.model = model
+        st.session_state.history = history
+        st.session_state.x_test = x_test
+        st.session_state.y_test = y_test
+    else:
+        model = st.session_state.model
+        history = st.session_state.history
+        x_test = st.session_state.x_test
+        y_test = st.session_state.y_test
+
+    return model, history, x_test, y_test
+
+# เมื่อโมเดลฝึกเสร็จแล้ว ใช้ในการทำนาย
+if selected_tab == 'Demo Neural network':
+    model, history, x_test, y_test = load_model_and_data()
+
     st.header("Neural Network Demo")
-    st.write("""
-        In this section, we will demonstrate how a **Neural Network** can be implemented for loan approval prediction.
-        The demo will come later when the model has been developed.
+
+    st.write(""" 
+        ในส่วนนี้เราจะแสดงตัวอย่างการทำนายจากโมเดล Neural Network ที่ได้ฝึกกับข้อมูล MNIST
+        โมเดลนี้สามารถทำนายตัวเลขจากภาพที่อัปโหลดเข้ามาได้
     """)
+
+    # แสดงกราฟ Accuracy และ Loss ก่อนการอัปโหลด
+    st.header("Training History")
+
+    # จัดการแสดงกราฟแบบคอลัมน์
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # กราฟ Accuracy
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.plot(history.history['accuracy'], label='Training Accuracy')
+        ax.set_title('Model Accuracy')
+        ax.set_xlabel('Epochs')
+        ax.set_ylabel('Accuracy')
+        ax.legend()
+        st.pyplot(fig)
+
+    with col2:
+        # กราฟ Loss
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.plot(history.history['loss'], label='Training Loss')
+        ax.set_title('Model Loss')
+        ax.set_xlabel('Epochs')
+        ax.set_ylabel('Loss')
+        ax.legend()
+        st.pyplot(fig)
+
+    # แสดงข้อความกับการจัดวางในคอลัมน์
+    col1, col2 = st.columns([2, 3])
+
+    with col1:
+        st.image("https://upload.wikimedia.org/wikipedia/commons/a/a5/MnistExample.png", caption="ตัวอย่างข้อมูลจาก MNIST", use_container_width=True)
+
+    with col2:
+        st.write("""
+            โมเดลนี้ถูกฝึกด้วยข้อมูลจาก MNIST ซึ่งเป็นชุดข้อมูลของตัวเลขที่เขียนด้วยมือ
+            โดยโมเดลนี้สามารถทำนายตัวเลขจากภาพที่คุณอัปโหลดได้
+        """)
+
+    # อัปโหลดรูปภาพจากผู้ใช้
+    uploaded = st.file_uploader("อัปโหลดรูปภาพที่ต้องการทำนาย", type=["jpg", "png", "jpeg"])
+
+    if uploaded is not None:
+        # แปลงภาพที่อัปโหลด
+        img = Image.open(uploaded).convert('L')  # แปลงเป็น grayscale
+        img = img.resize((28, 28))  # ปรับขนาดเป็น 28x28
+        img_array = np.array(img)  # แปลงเป็น numpy array
+        img_array = img_array / 255.0  # Normalization
+        img_array = img_array.reshape(1, 28, 28, 1)  # ปรับขนาดข้อมูลเป็น (1, 28, 28, 1)
+
+        # ทำนายผลจากโมเดล
+        prediction = model.predict(img_array)
+        predicted_label = np.argmax(prediction)
+
+        # แสดงผลลัพธ์การทำนาย  
+        st.image(img, caption='Uploaded Image', use_container_width=True)  # แก้เป็น use_container_width=True
+        st.markdown(f"<h1 style='text-align: center; font-size: 60px;'>Predicted Number: {predicted_label}</h1>", unsafe_allow_html=True)
+
+
+
+
+
