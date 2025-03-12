@@ -76,11 +76,12 @@ if selected_tab == 'Machine learning':
 
     # การดาวน์โหลดไฟล์ข้อมูล
     st.write("คุณสามารถดาวน์โหลดข้อมูลการอนุมัติสินเชื่อได้ที่นี่:")
-    url = 'https://drive.google.com/uc?export=download&id=1QGEXA89PMyjqtR7rbFU41ev4M5vVMq-B'
-    gdown.download(url, 'loan_approvals.csv', quiet=False)
 
-    with open('loan_approvals.csv', 'rb') as file:
-        st.download_button("ดาวโหลด loan_approvals.csv", data=file, file_name="loan_approvals.csv", mime="text/csv")
+# สร้างลิงก์สำหรับคลิกไปยัง Google Drive
+    drive_link = 'https://drive.google.com/drive/u/0/folders/1M49d6uX87fUK6YtjgN-TmAFZ-hjZ33wb'
+
+# ใช้ st.markdown เพื่อแสดงลิงก์
+    st.markdown(f"[คลิกที่นี่เพื่อเปิด Google Drive]( {drive_link} )")
 
     # แสดงตัวอย่างโค้ดการโหลดข้อมูล
     st.code("""
