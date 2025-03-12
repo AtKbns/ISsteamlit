@@ -78,6 +78,7 @@ if selected_tab == 'Machine learning':
     st.write("คุณสามารถดาวน์โหลดข้อมูลการอนุมัติสินเชื่อได้ที่นี่:")
     url = 'https://drive.google.com/uc?export=download&id=1QGEXA89PMyjqtR7rbFU41ev4M5vVMq-B'
     gdown.download(url, 'loan_approvals.csv', quiet=False)
+
     with open('loan_approvals.csv', 'rb') as file:
         st.download_button("ดาวโหลด loan_approvals.csv", data=file, file_name="loan_approvals.csv", mime="text/csv")
 
