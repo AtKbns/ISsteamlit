@@ -3,5 +3,5 @@ numpy
 scikit-learn 
 streamlit 
 gdown 
-keras   
+keras==2.8.0 
 tensorflow==2.8.0
