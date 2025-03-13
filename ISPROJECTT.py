@@ -4,7 +4,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 import streamlit as st
-import gdown  # ต้อง import gdown ด้วย
+
 
 # โหลด Dataset
 data = pd.read_csv('loan_approvals.csv')
