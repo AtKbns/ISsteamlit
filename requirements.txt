@@ -2,7 +2,5 @@ pandas
 numpy
 scikit-learn
 streamlit
-gdown
-keras==2.8.0
-tensorflow==2.8.0
-protobuf==3.20.0  # เพิ่มเวอร์ชันที่รองรับ TensorFlow
+tensorflow
+
