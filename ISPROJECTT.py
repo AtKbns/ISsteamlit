@@ -261,7 +261,10 @@ elif selected_tab == 'Neural network':
 
 elif selected_tab == 'Demo Machine learning':
     st.header("Machine Learning Demo")
-    st.subheader("Support Vector Machine")
+    
+    # เพิ่มส่วนให้เลือกโมเดล
+    model_choice = st.radio("เลือกโมเดลที่ต้องการใช้:", ['SVM', 'KNN'])
+    
     # รับข้อมูลจากผู้ใช้
     gender = st.selectbox('Gender', ['Male', 'Female'])
     marital_status = st.selectbox('Marital Status', ['Yes', 'No'])
@@ -296,7 +299,12 @@ elif selected_tab == 'Demo Machine learning':
         # เตรียมข้อมูลสำหรับการทำนาย
         user_data = np.array([[gender, marital_status, dependents, education, income, loan_amount]])
         user_data = scaler.transform(user_data)  # ปรับขนาดข้อมูล
-        prediction = svm.predict(user_data)
+
+        # เลือกโมเดลตามที่ผู้ใช้เลือก
+        if model_choice == 'SVM':
+            prediction = svm.predict(user_data)
+        elif model_choice == 'KNN':
+            prediction = knn.predict(user_data)
         
         return prediction
 
@@ -307,6 +315,7 @@ elif selected_tab == 'Demo Machine learning':
             st.success("Loan Approved")
         else:
             st.error("Loan Denied")
+
 
 
 import tensorflow as tf
