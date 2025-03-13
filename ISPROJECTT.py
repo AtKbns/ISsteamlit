@@ -1,5 +1,4 @@
 # Load Dataset
-@st.cache
 def load_data():
     data = pd.read_csv('loan_approvals.csv')
     # Handle missing values
