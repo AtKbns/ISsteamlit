@@ -42,7 +42,13 @@ svm = SVC(class_weight='balanced')
 
 # ฝึกโมเดล SVM
 svm.fit(X_train, y_train)
+from sklearn.neighbors import KNeighborsClassifier
 
+# สร้างโมเดล KNN
+knn = KNeighborsClassifier(n_neighbors=3)
+
+# ฝึกโมเดลกับข้อมูลที่เตรียมไว้
+knn.fit(X_train, y_train)
 # สร้างหน้า UI ด้วย Streamlit
 st.title("ISPROJECT")
 
