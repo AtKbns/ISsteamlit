@@ -1,66 +1,54 @@
-# Load Dataset
-def load_data():
-    data = pd.read_csv('loan_approvals.csv')
-    # Handle missing values
-    data['Gender'] = data['Gender'].fillna('Unknown')
-    data['Married'] = data['Married'].fillna('Unknown')
-    data['Dependents'] = data['Dependents'].replace({'3+': 3})  # Convert '3+' to 3
-    data['Dependents'] = data['Dependents'].fillna('0')
-    data['Education'] = data['Education'].fillna('Unknown')
-    data['Loan_Status'] = data['Loan_Status'].map({'Yes': 1, 'No': 0})
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
+import streamlit as st
+import gdown  # ต้อง import gdown ด้วย
 
-    # Apply Label Encoding for categorical features
-    label_encoders = {}
-    categorical_cols = ['Gender', 'Married', 'Dependents', 'Education']
-    for col in categorical_cols:
-        le = LabelEncoder()
-        data[col] = le.fit_transform(data[col].astype(str))
-        label_encoders[col] = le
+# โหลด Dataset
+data = pd.read_csv('loan_approvals.csv')
 
-    return data
+# แทนที่ค่าที่หายไป (nan)
+data['Gender'] = data['Gender'].fillna('Unknown')
+data['Married'] = data['Married'].fillna('Unknown')
+data['Dependents'] = data['Dependents'].replace({'3+': 3})  # แปลง 3+ เป็น 3
+data['Dependents'] = data['Dependents'].fillna('0')
+data['Education'] = data['Education'].fillna('Unknown')
+data['Loan_Status'] = data['Loan_Status'].map({'Yes': 1, 'No': 0})
 
-data = load_data()
+# ใช้ LabelEncoder สำหรับข้อมูลหมวดหมู่
+label_encoders = {}
+categorical_cols = ['Gender', 'Married', 'Dependents', 'Education']
+for col in categorical_cols:
+    le = LabelEncoder()
+    data[col] = le.fit_transform(data[col].astype(str))  # แปลงเป็น str ก่อนเข้ารหัส
+    label_encoders[col] = le
 
-# Display sample data
-st.write(data.head())
+# แยก Features (X) และ Target (y)
+X = data.drop(columns=['Loan_Status'])
+y = data['Loan_Status']
 
-# Prepare Features and Target
-X = data.drop('Loan_Status', axis=1)  # Features
-y = data['Loan_Status']  # Target
-X = X.fillna(X.mean())  # Handle missing numerical values
+# แบ่งข้อมูลเป็น Training และ Test set
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Normalize the data
+# ปรับขนาดข้อมูล (Standardize)
 scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
-# Split the data into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+# สร้างโมเดล SVM
+svm = SVC(class_weight='balanced')
 
-# Model selection in Streamlit UI
-model_choice = st.radio("Choose the model:", ('SVM', 'KNN', 'Random Forest'))
+# ฝึกโมเดล SVM
+svm.fit(X_train, y_train)
 
-# Create and train the selected model
-if model_choice == 'SVM':
-    model = SVC()
-elif model_choice == 'KNN':
-    model = KNeighborsClassifier()
-elif model_choice == 'Random Forest':
-    model = RandomForestClassifier()
+# สร้างหน้า UI ด้วย Streamlit
+st.title("ISPROJECT")
 
-# Train the model
-model.fit(X_train, y_train)
-
-# Make predictions
-y_pred = model.predict(X_test)
-
-# Show accuracy result
-accuracy = accuracy_score(y_test, y_pred)
-st.write(f"Accuracy: {accuracy*100:.2f}%")
-
-# UI Tabs for navigation
+# สร้างแท็บ (Tab)
 tabs = ['Machine learning', 'Neural network', 'Demo Machine learning', 'Demo Neural network']
 selected_tab = st.selectbox('Choose a Tab', tabs)
-
 
 
 # แสดงผลตามแท็บที่เลือก
@@ -452,8 +440,3 @@ if selected_tab == 'Demo Neural network':
         # แสดงผลลัพธ์การทำนาย  
         st.image(img, caption='Uploaded Image', use_container_width=True)  # แก้เป็น use_container_width=True
         st.markdown(f"<h1 style='text-align: center; font-size: 60px;'>Predicted Number: {predicted_label}</h1>", unsafe_allow_html=True)
-
-
-
-
-
