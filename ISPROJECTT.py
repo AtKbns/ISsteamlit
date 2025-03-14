@@ -179,6 +179,22 @@ param_grid_svm = {'C': [0.1, 1, 10], 'kernel': ['linear', 'rbf'], 'gamma': ['sca
 grid_search_svm = GridSearchCV(SVC(), param_grid_svm, cv=5)  # ใช้ Cross Validation เพื่อหาค่าพารามิเตอร์ที่ดีที่สุด
 grid_search_svm.fit(X_train, y_train)  # ฝึกโมเดล
 print("Best Parameters for SVM:", grid_search_svm.best_params_)  # แสดงค่าพารามิเตอร์ที่ดีที่สุด
+from sklearn.neighbors import KNeighborsClassifier
+param_grid_knn = {
+    'n_neighbors': [3, 5, 7, 9],
+    'weights': ['uniform', 'distance'],
+    'metric': ['euclidean', 'manhattan']
+}
+
+# สร้างโมเดล KNN
+knn = KNeighborsClassifier()
+
+# ใช้ GridSearchCV เพื่อหาค่าพารามิเตอร์ที่ดีที่สุด
+grid_search_knn = GridSearchCV(knn, param_grid_knn, cv=5)
+grid_search_knn.fit(X_train, y_train)
+
+# แสดงผลลัพธ์ที่ดีที่สุด
+print("Best Parameters for KNN:", grid_search_knn.best_params_)
     """, language='python')
 
     # เปรียบเทียบผลลัพธ์จากโมเดลต่างๆ
