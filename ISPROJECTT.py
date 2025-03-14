@@ -144,7 +144,7 @@ X_train = scaler.fit_transform(X_train)  # ปรับขนาดข้อม�
 X_test = scaler.transform(X_test)  # ปรับขนาดข้อมูลสำหรับชุดทดสอบ
     """, language='python')
 
-    # สร้างโมเดล SVM
+    # สร้างโมเดล SVM และ KNN
     st.write("ตอนนี้เราจะสร้างโมเดล SVM (Support Vector Machine) เพื่อทำการทำนายผลลัพธ์ว่า ผู้สมัครจะได้รับการอนุมัติสินเชื่อหรือไม่")
     st.code("""
 from sklearn.svm import SVC
@@ -152,6 +152,23 @@ svm = SVC(class_weight='balanced')  # ตั้งค่าพารามิเ
 svm.fit(X_train, y_train)  # ฝึกโมเดลด้วยข้อมูลชุดฝึก
 y_pred = svm.predict(X_test)  # ทำนายผลลัพธ์ด้วยข้อมูลชุดทดสอบ
 print("Accuracy:", accuracy_score(y_test, y_pred))  # แสดงค่าความแม่นยำ
+
+from sklearn.neighbors import KNeighborsClassifier
+param_grid_knn = {
+    'n_neighbors': [3, 5, 7, 9],
+    'weights': ['uniform', 'distance'],
+    'metric': ['euclidean', 'manhattan']
+}
+
+# สร้างโมเดล KNN
+knn = KNeighborsClassifier()
+
+# ใช้ GridSearchCV เพื่อหาค่าพารามิเตอร์ที่ดีที่สุด
+grid_search_knn = GridSearchCV(knn, param_grid_knn, cv=5)
+grid_search_knn.fit(X_train, y_train)
+
+# แสดงผลลัพธ์ที่ดีที่สุด
+print("Best Parameters for KNN:", grid_search_knn.best_params_)
     """, language='python')
 
     # ใช้ GridSearchCV สำหรับการปรับพารามิเตอร์ของ SVM
@@ -167,13 +184,28 @@ print("Best Parameters for SVM:", grid_search_svm.best_params_)  # แสดง�
     # เปรียบเทียบผลลัพธ์จากโมเดลต่างๆ
     st.write("สุดท้าย เราสามารถเปรียบเทียบผลลัพธ์ของโมเดลต่างๆ เพื่อดูว่าโมเดลใดทำงานได้ดีที่สุด")
     st.code("""
-models = {'SVM': grid_search_svm.best_estimator_}
+# ใช้โมเดลที่ได้จาก GridSearchCV และทำนายผล
+best_svm = grid_search_svm.best_estimator_
+best_knn = grid_search_knn.best_estimator_
+best_rf = grid_search_rf.best_estimator_
+
+# ประเมินผลของโมเดลที่ดีที่สุด
+models = {
+    'Best SVM': best_svm,
+    'Best KNN': best_knn,
+    'Best RandomForest': best_rf
+}
+
+# ประเมินผลและแสดงผล
+# ประเมินผลและแสดงผล
 for name, model in models.items():
-    model.fit(X_train, y_train)  # ฝึกโมเดล
-    y_pred = model.predict(X_test)  # ทำนายผลลัพธ์
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
     print(f"Model: {name}")
-    print("Accuracy:", accuracy_score(y_test, y_pred))  # แสดงความแม่นยำ
-    print("Classification Report:\n", classification_report(y_test, y_pred))  # แสดงรายงานความแม่นยำ
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("Classification Report:\n", classification_report(y_test, y_pred, zero_division=1))  # แก้ไขที่นี่
+    print("="*50)
+
     """, language='python')
 
 
